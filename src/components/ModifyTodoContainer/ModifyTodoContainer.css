@@ -1,0 +1,29 @@
+.modifyTodo{
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  background-color: #F38630;
+  padding: 25px;
+}
+.modifyTodo h4{
+  margin-bottom: 30px;
+}
+
+.modifyTodo__row{
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+.modifyTodo__row span{
+ min-width: 250px;
+ max-width: 100%;
+}
+.modifyTodo__row input{
+ min-width: 350px;
+}
+.modifyTodo__row button{
+ margin-top: 15px;
+}
