@@ -1,0 +1,11 @@
+.graph-info {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+.graph-info >div{
+  padding: 10px;
+  color: #ffffff;
+}

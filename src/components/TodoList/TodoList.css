@@ -27,6 +27,8 @@ ul li {
   display: flex;
   flex-flow: row nowrap;
   padding-top: 16px;
+  z-index: 3;
+  margin-top: 10px;
 }
 ul li .progress {
   position: absolute;
@@ -41,7 +43,7 @@ ul li .todo-desc{
 
 /* Set all odd list items to a different color (zebra-stripes) */
 ul li:nth-child(odd) {
-  background: #f9f9f9;
+  /* background: #f9f9f9; */
 }
 
 /* Darker background-color on hover */
@@ -107,6 +109,9 @@ ul li.checked::before {
   align-items: center;
   justify-content: space-between;
 }
-.input-row input{
-  /* border: 1px solid black; */
+.input-row select{
+  margin: 0 15px;
+}
+.input-row button {
+  margin-left: 15px;
 }
