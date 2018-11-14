@@ -1,3 +1,6 @@
+# To-do List Manager
+This is a project for managing your to-do tasks.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
