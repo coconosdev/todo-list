@@ -67,7 +67,7 @@ ul li.checked::before {
 }
 
 .action-btn {
-  padding: 12px 16px 12px 16px;
+  padding: 10px;
 }
 
 .action-btn:hover {
@@ -84,29 +84,65 @@ ul li.checked::before {
 }
 .todo-time{
   position: absolute;
-  right: 356px;
-  top: 27px;
+  right: 270px;
+  top: 23px;
   border: 2px solid #70ebff;
   border-radius: 5px;
   padding: 0 8px;
 }
-.input-row{
+
+
+
+
+
+.input-row {
   display: flex;
-  flex-flow: row nowrap;
+  flex-flow: row wrap;
   align-items: center;
   justify-content: space-between;
 }
-.input-row  >*:nth-child(1), .input-row  >*:nth-child(2){
-  min-width: 220px;
+@media (min-width: 992px) {
+  .input-row {
+    flex-flow: row nowrap;
+  }
 }
-.input-row #input-filter{
-  flex-basis: 100%;
+.input-row #input-filter {
   width: 100%;
-  margin-top: 15px;
+  flex-basis: 100%;
+  max-width: 100%;
 }
-.input-row select{
-  margin: 0 15px;
+@media (min-width: 992px) {
+  .input-row #input-filter {
+    margin-top: 15px;
+  }
 }
-.input-row button {
-  margin-left: 15px;
+.input-row > * {
+  width: 100%;
+  flex-basis: 100%;
+  margin-top: 10px;
+}
+@media (min-width: 768px) {
+  .input-row > * {
+    flex-basis: 49%;
+    max-width: 49%;
+  }
+}
+@media (min-width: 992px) {
+  .input-row > * {
+    margin-top: 0;
+  }
+}
+.input-row > *:first-child, .input-row > *:nth-child(2) {
+  min-width: 190px;
+}
+@media (min-width: 992px) {
+  .input-row select {
+    margin: 0 5px;
+  }
+}
+@media (min-width: 992px) {
+  .input-row button {
+    margin-left: 10px;
+    max-width: 80px;
+  }
 }
