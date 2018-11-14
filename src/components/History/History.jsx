@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import './History.css';
-import moment from 'moment';
 
 class History extends Component {
   render() {

@@ -22,9 +22,10 @@ class ModifyTodoContainer extends Component {
                   onChange={e=>this.props.onTextChange(e)}/>
               </div>
               <div className="form-group">
-                <label htmlFor="todo-desc" className="col-form-label">Duración:</label>
+                <label htmlFor="todo-desc" className="col-form-label">Duración en segundos:</label>
                 <input type="text" id="myInput" value={this.props.todo.duration}
-                  placeholder="Duración..."
+                  placeholder="Duración en segundos..."
+                  maxLength="4"
                   className="form-control"
                   onChange={e=>this.props.onDurationChange(e)}/>
               </div>

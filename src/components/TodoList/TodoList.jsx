@@ -6,35 +6,88 @@ import History from '../History/History'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import moment from 'moment';
 
+const SelectMinutes = (props) => {
+  const long = props.type;
+  let arr = [];
+  if (long == 0) {
+    arr = Array.from({length: 30}, (v, k) => k);
+  }
+  if (long == 30) {
+    arr = Array.from({length: 30}, (v, k) => k+30);
+  }
+  if (long == 60) {
+    arr = Array.from({length: 60}, (v, k) => k+60);
+  }
+  return (
+    <select value={props.value} 
+      placeholder="Minutos"
+      onChange={e=>props.onHandleSelect(e)}  
+      className="form-control">
+        {
+          arr.map((obj) => {
+            return (
+              <option value={obj} key={obj}>{obj} minutos</option>
+            )
+          })
+        }
+    </select>
+  );
+}
+const SelectSeconds = (props) => {
+  let arr = Array.from({length: 60}, (v, k) => k);;
+  return (
+    <select value={props.value} 
+      placeholder="Segundos"
+      onChange={e=>props.onHandleSelect(e)}  
+      className="form-control">
+        {
+          arr.map((obj) => {
+            return (
+              <option value={obj} key={obj}>{obj} segundos</option>
+            )
+          })
+        }
+    </select>
+  );
+}
+
 const InputsBar = (props) => {
   return (
     <div>
       <div id="myDIV" className="header">
-        <h2>Lista de tareas</h2>
-
         <div className="input-row">
-          <input type="text" id="myInput" value={props.context.state.inputDesc}
+          <input type="text" value={props.context.state.inputDesc}
             placeholder="Descripción..."
             className="form-control"
             onChange={e=>props.context.updateInputDesc(e)}/>
           <select value={props.context.state.optionSelected} onChange={e=>props.context.handleSelect(e)}  className="form-control">
-            <option value="1">Corta: 30 min o menos</option>
-            <option value="2">Media: 30 min a 1 hr</option>
-            <option value="3">Larga: más de 1 hr</option>
-            <option value="custom">Personalizado</option>
+            <option value="0">Corta: 30 min o menos</option>
+            <option value="30">Media: 30 min a 1 hr</option>
+            <option value="60">Larga: más de 1 hr</option>
           </select>
-          <input type="text" id="myInput" value={props.context.state.inputDur}
-            disabled={!props.context.state.isCustomTime}
-            placeholder="Duración..."
-            className="form-control"
-            onChange={e=>props.context.updateInputDur(e)}/>
+          <SelectMinutes type={props.context.state.optionSelected}
+            onHandleSelect={props.context.handleSelectMinutes}
+            value={props.context.state.totalMinutes}>
+          </SelectMinutes>
+          <SelectSeconds
+            onHandleSelect={props.context.handleSelectSecs}
+            value={props.context.state.totalSecs}>
+          </SelectSeconds>
           <button
-            disabled={(props.context.state.inputDesc == '' || props.context.state.inputDur == '')}
-            className={(props.context.state.inputDesc == '' || props.context.state.inputDur == '') ? 'btn disabled' : 'btn btn-success'}
+            disabled={(props.context.state.totalMinutes == 0 || props.context.state.totalSecs == 0)}
+            className={(props.context.state.totalMinutes == 0 || props.context.state.totalSecs == 0) ? 'btn disabled' : 'btn btn-success'}
             onClick={props.context.newElement} >Agregar</button>
           <button
             className={'btn btn-info'}
             onClick={props.context.generateRandomTodos} >Generar</button>
+          
+        </div>
+        <div className="input-row">
+          <input type="text" value={props.context.state.inputFilter}  
+              id="input-filter"
+              placeholder="Filtrar tareas pendientes..."
+              onChange={e=>props.context.updateInputFilter(e)}
+              className="form-control"/>
         </div>
       </div>
     </div>
@@ -48,6 +101,11 @@ class TodoList extends Component {
       todoList: [],
       inputDesc: '',
       inputDur: '',
+      totalMinutes: 0,
+      totalSecs: 0,
+      inputFilter: '',
+      selectedIndex: 0,
+      optionSelected: '0',
       selectedElement: {
         text: '',
         checked: false,
@@ -58,9 +116,7 @@ class TodoList extends Component {
         onEdit: false,
         playProgress: function (action) {},
       },
-      selectedIndex: 0,
-      isCustomTime: true,
-      optionSelected: 'custom',
+     
     };
     this.newElement = this.newElement.bind(this);
     this.deleteElement = this.deleteElement.bind(this);
@@ -68,15 +124,18 @@ class TodoList extends Component {
     this.modifyTodoDesc = this.modifyTodoDesc.bind(this);
     this.modifyTodoDur = this.modifyTodoDur.bind(this);
     this.generateRandomTodos = this.generateRandomTodos.bind(this);
+    this.handleSelectMinutes = this.handleSelectMinutes.bind(this);
+    this.handleSelectSecs = this.handleSelectSecs.bind(this);
   }
 
   newElement() {
-    if (this.state.inputDesc != '' && this.state.inputDur != ''){
+    if (this.state.inputDesc != ''){
       const tempList = this.state.todoList;
+      const totalTime = (this.state.totalMinutes * 60) + Number(this.state.totalSecs);
       tempList.push({
         text: this.state.inputDesc,
         checked: false,
-        duration: Number(this.state.inputDur),
+        duration: Number(totalTime),
         progress: 0,
         intervalId: 0,
         action: '',
@@ -132,8 +191,9 @@ class TodoList extends Component {
         todoList: tempList,
         inputDesc: '',
         inputDur: '',
-        isCustomTime: true,
-        optionSelected: 'custom',
+        optionSelected: '0',
+        totalMinutes: 0,
+        totalSecs: 0,
       });
     }
   }
@@ -183,6 +243,16 @@ class TodoList extends Component {
   _calcProgressWidth(obj){
     return (obj.progress/obj.duration) * 100;
   }
+  _pad(num) {
+    return ("0"+num).slice(-2);
+  }
+  _hhmmss(secs) {
+    let minutes = Math.floor(secs / 60);
+    secs = secs%60;
+    let hours = Math.floor(minutes/60);
+    minutes = minutes%60;
+    return this._pad(hours)+":"+this._pad(minutes)+":"+this._pad(secs);
+  }
 
   _genId() {
     function s4() {
@@ -220,7 +290,49 @@ class TodoList extends Component {
         finishedTime: '' + this._getRandomInt(Math.round(randomDuration*.8), randomDuration),
         finishedDate: validDates[this._getRandomInt(0, 6)],
         id: this._genId(),
-        playProgress: function (action) {}
+        playProgress: function (action, context = null) {
+          let tempList = context.state.todoList;
+          this.action = action;
+          const pushingProgress = () => {
+            if (this.action != 'pause' && this.action != 'stop') {
+              this.progress++;
+              if (this.progress >= this.duration){
+                this.action = 'stop';
+                this.checked = true;
+                this.onProgress = false;
+                this.finishedTime = this.duration;
+                this.finishedDate = moment().format('DD/MM/YY');
+                clearInterval(this.intervalId);
+              }
+            }
+            context.setState({
+              todoList: tempList,
+            });
+          };
+          if (this.action == 'restart') {
+            clearInterval(this.intervalId);
+            this.progress = 0;
+            this.checked = false;
+            this.intervalId = 0;
+          }
+          if (this.intervalId == 0){
+            this.onProgress = true;
+            this.intervalId = setInterval(pushingProgress, 300);
+          } 
+          if (this.action == 'pause') {
+            this.onProgress = false;
+          }
+          if (this.action == 'stop') {
+            clearInterval(this.intervalId);
+            this.progress = 0;
+            this.checked = false;
+            this.intervalId = 0;
+            this.onProgress = false;
+          }
+          context.setState({
+            todoList: tempList,
+          });
+        },
       });
     }
     this.setState({
@@ -229,7 +341,8 @@ class TodoList extends Component {
   }
 
   getList(){
-    const tempList = this.state.todoList;
+    let tempList = this.state.todoList;
+    const filter = this.state.inputFilter;
     tempList.sort((a, b) => {
       if (a.onProgress === true) {
         return -1;
@@ -237,6 +350,17 @@ class TodoList extends Component {
         return 0;
       }
     });
+
+    if (filter != '') {
+      tempList = tempList.filter((obj)=> {
+        if (obj.checked == false && obj.text.toLowerCase().includes(filter.toLowerCase())) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+    }
+
     return tempList.map((obj, i)=>{
       return (
         <Draggable draggableId={'draggable-'+i} index={i} key={obj.id}>
@@ -249,9 +373,11 @@ class TodoList extends Component {
               <div className="progress">
                 <div className="progress-bar" role="progressbar" style={{width: this._calcProgressWidth(tempList[i]) + '%'}}></div>
               </div>
+              <span className="todo-time">
+                {this._hhmmss(obj.duration - obj.progress)}
+              </span>
               <span className="todo-desc" >{obj.text}</span>
               <span className="action-btn play" title="Editar tarea" data-toggle="modal" data-target="#todoModal" onClick={()=>this.modifyElement(i)}><i className="fas fa-edit"></i></span>
-              {/* <span className="action-btn edit" title="Iniciar tarea" onClick={tempList[i].playProgress.bind(tempList[i], null, this)}><i className="fas fa-play"></i></span> */}
               <span className="action-btn edit" title="Iniciar tarea" onClick={()=>this.playElement(i)}><i className="fas fa-play"></i></span>
               <span className="action-btn pause" title="Pausar tarea" onClick={tempList[i].playProgress.bind(tempList[i], 'pause', this)}><i className="fas fa-pause-circle"></i></span>
               <span className="action-btn reset" title="Reiniciar tarea" onClick={tempList[i].playProgress.bind(tempList[i], 'restart', this)}><i className="fas fa-sync-alt"></i></span>
@@ -270,10 +396,15 @@ class TodoList extends Component {
       inputDesc: e.target.value
     });
   }
+  updateInputFilter(e){
+    this.setState({
+      inputFilter: e.target.value
+    });
+  }
 
   updateInputDur(e){
     this.setState({
-      inputDur: e.target.value
+      inputDur: e.target.value.replace(/\D/,'')
     });
   }
 
@@ -287,7 +418,9 @@ class TodoList extends Component {
 
   modifyTodoDur(e){
     this.setState({
-      selectedElement: Object.assign({}, this.state.selectedElement, {duration: Number(e.target.value)}) 
+      selectedElement: Object.assign({}, 
+        this.state.selectedElement, 
+        {duration: Number(e.target.value.replace(/\D/,''))}) 
     }, () => {
       this.updateList();
     });
@@ -303,33 +436,20 @@ class TodoList extends Component {
   }
 
   handleSelect(e) {
-    if (e.target.value == 'custom') {
-      this.setState({
-        isCustomTime: true,
-        inputDur: 0,
-      });
-    } else {
-      this.setState({
-        isCustomTime: false,
-      });
-    }
-    if (e.target.value == '1') {
-      this.setState({
-        inputDur: this._getRandomInt(1, 1800),
-      });
-    }
-    if (e.target.value == '2') {
-      this.setState({
-        inputDur: this._getRandomInt(1800, 3600),
-      });
-    }
-    if (e.target.value == '3') {
-      this.setState({
-        inputDur: this._getRandomInt(3600, 7200),
-      });
-    }
     this.setState({
       optionSelected: e.target.value,
+      totalMinutes: e.target.value,
+    });
+  }
+
+  handleSelectMinutes(e){
+    this.setState({
+      totalMinutes: e.target.value,
+    });
+  }
+  handleSelectSecs(e){
+    this.setState({
+      totalSecs: e.target.value,
     });
   }
 
@@ -356,7 +476,8 @@ class TodoList extends Component {
 
   render() {
     return (
-      <div>
+      <div className="app-wrapper">
+        <h1>Lista de tareas</h1>
         <nav>
           <div className="nav nav-tabs" id="nav-tab" role="tablist">
             <a className="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
@@ -370,7 +491,7 @@ class TodoList extends Component {
             <DragDropContext onDragEnd={this.onDragEnd}>
               <Droppable droppableId="droppable-1">
                 {(provided)=>(
-                  <ul id="myUL"
+                  <ul
                     ref={provided.innerRef}
                     {...provided.droppableProps}>
                     {this.getList()}
